@@ -16,11 +16,16 @@ const editModal = document.getElementById('editModal');
 const closeModal = document.querySelector('.close-modal');
 const editForm = document.getElementById('editForm');
 const themeToggle = document.getElementById('themeToggle');
+const generatePerfumeNameBtn = document.getElementById('generatePerfumeName');
+const perfumeTypeSelect = document.getElementById('perfumeType');
+const wordCountSelect = document.getElementById('wordCount');
 
 // Perfume Names List Elements
 const togglePerfumeList = document.getElementById('togglePerfumeList');
 const perfumeNamesList = document.getElementById('perfumeNamesList');
 const newPerfumeNameInput = document.getElementById('newPerfumeName');
+const newPerfumePriceInput = document.getElementById('newPerfumePrice');
+const newPerfumeNoteInput = document.getElementById('newPerfumeNote');
 const savePerfumeNameBtn = document.getElementById('savePerfumeName');
 const savedPerfumeNamesList = document.getElementById('savedPerfumeNames');
 const selectAllNames = document.getElementById('selectAllNames');
@@ -82,42 +87,62 @@ perfumeNamesList.addEventListener('click', (e) => {
     e.stopPropagation();
 });
 
-// Save new perfume name
+// Save new perfume name (with optional price and note)
 savePerfumeNameBtn.addEventListener('click', () => {
     const name = newPerfumeNameInput.value.trim();
+    const price = newPerfumePriceInput ? newPerfumePriceInput.value.trim() : '';
+    const note = newPerfumeNoteInput ? newPerfumeNoteInput.value.trim() : '';
     if (!name) return;
-    
+
     // Check if name already exists in perfumes list
     if (perfumes.some(p => p.name.toLowerCase() === name.toLowerCase())) {
         alert('هذا العطر موجود مسبقاً في قائمة العطور المضافة!');
         return;
     }
-    
+
     // Check if name already exists in saved names
-    if (perfumeNames.some(savedName => savedName.toLowerCase() === name.toLowerCase())) {
+    if (perfumeNames.some(savedEntry => {
+        const savedNameText = typeof savedEntry === 'string' ? savedEntry : savedEntry.name;
+        return savedNameText && savedNameText.toLowerCase() === name.toLowerCase();
+    })) {
         alert('هذا الاسم موجود مسبقاً في قائمة الأسماء المحفوظة!');
         return;
     }
-    
-    perfumeNames.push(name);
+
+    perfumeNames.push({ name, price, note });
     localStorage.setItem('perfumeNames', JSON.stringify(perfumeNames));
     updatePerfumeNamesList();
     newPerfumeNameInput.value = '';
+    if (newPerfumePriceInput) newPerfumePriceInput.value = '';
+    if (newPerfumeNoteInput) newPerfumeNoteInput.value = '';
 }); 
 
 // Update perfume names list
 function updatePerfumeNamesList() {
     savedPerfumeNamesList.innerHTML = '';
-    perfumeNames.forEach(name => {
+    perfumeNames.forEach(entry => {
+        const name = typeof entry === 'string' ? entry : entry.name;
+        const price = typeof entry === 'object' && entry !== null && entry.price ? entry.price : '';
+        const note = typeof entry === 'object' && entry !== null && entry.note ? entry.note : '';
+
         const li = document.createElement('li');
         li.innerHTML = `
             <div class="name-item-container">
                 <input type="checkbox" class="name-checkbox" value="${name}">
-                <span class="perfume-name-item" style="cursor: pointer">${name}</span>
+                <div class="name-text-block">
+                    <span class="perfume-name-item" style="cursor: pointer">${name}</span>
+                    ${(price || note) ? `
+                        <div class="perfume-name-meta">
+                            ${price ? `<span class="perfume-name-price">السعر: ${price}</span>` : ''}
+                            ${price && note ? '<span class="meta-separator">|</span>' : ''}
+                            ${note ? `<span class="perfume-name-note">ملاحظة: ${note}</span>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
             <button class="delete-name-btn" onclick="deletePerfumeName('${name}')">×</button>
         `;
-        
+
         // Add click event to the name
         const nameSpan = li.querySelector('.perfume-name-item');
         nameSpan.addEventListener('click', () => {
@@ -130,7 +155,7 @@ function updatePerfumeNamesList() {
             // Focus on the next input field (ingredients)
             document.getElementById('perfumeIngredients').focus();
         });
-        
+
         savedPerfumeNamesList.appendChild(li);
     });
 }
@@ -153,7 +178,10 @@ deleteSelectedNames.addEventListener('click', () => {
     
     if (confirm(`هل أنت متأكد من حذف ${selectedCheckboxes.length} عطر محدد؟`)) {
         const selectedNames = Array.from(selectedCheckboxes).map(cb => cb.value);
-        perfumeNames = perfumeNames.filter(name => !selectedNames.includes(name));
+        perfumeNames = perfumeNames.filter(entry => {
+            const entryName = typeof entry === 'string' ? entry : entry.name;
+            return !selectedNames.includes(entryName);
+        });
         localStorage.setItem('perfumeNames', JSON.stringify(perfumeNames));
         updatePerfumeNamesList();
         selectAllNames.checked = false;
@@ -190,7 +218,10 @@ document.head.appendChild(styleSheet);
 // Delete perfume name
 function deletePerfumeName(name) {
     if (confirm('هل أنت متأكد من حذف هذا الاسم؟')) {
-        perfumeNames = perfumeNames.filter(n => n !== name);
+        perfumeNames = perfumeNames.filter(entry => {
+            const entryName = typeof entry === 'string' ? entry : entry.name;
+            return entryName !== name;
+        });
         localStorage.setItem('perfumeNames', JSON.stringify(perfumeNames));
         updatePerfumeNamesList();
     }
@@ -204,7 +235,10 @@ function isDuplicatePerfume(name, currentId = null) {
     name = name.trim().toLowerCase();
     
     // Check if name exists in saved perfume names list
-    if (perfumeNames.some(savedName => savedName.toLowerCase() === name)) {
+    if (perfumeNames.some(savedName => {
+        const savedNameText = typeof savedName === 'string' ? savedName : savedName.name;
+        return savedNameText && savedNameText.toLowerCase() === name;
+    })) {
         alert('هذا العطر موجود مسبقاً في قائمة العطور المحفوظة!');
         return true;
     }
@@ -236,6 +270,182 @@ function addPerfumeNameValidation(input, currentId = null) {
 // Initialize perfume name validation
 const perfumeNameInput = document.getElementById('perfumeName');
 addPerfumeNameValidation(perfumeNameInput);
+
+// Manual perfume name transliteration (Arabic -> Latin chars) for user-typed names only
+const arabicCharMap = {
+    'ا': 'a',
+    'أ': 'a',
+    'إ': 'i',
+    'آ': 'a',
+    'ب': 'b',
+    'ت': 't',
+    'ث': 'th',
+    'ج': 'j',
+    'ح': 'h',
+    'خ': 'kh',
+    'د': 'd',
+    'ذ': 'dh',
+    'ر': 'r',
+    'ز': 'z',
+    'س': 's',
+    'ش': 'sh',
+    'ص': 's',
+    'ض': 'd',
+    'ط': 't',
+    'ظ': 'z',
+    'ع': 'a',
+    'غ': 'gh',
+    'ف': 'f',
+    'ق': 'q',
+    'ك': 'k',
+    'ل': 'l',
+    'م': 'm',
+    'ن': 'n',
+    'ه': 'h',
+    'و': 'w',
+    'ؤ': 'w',
+    'ي': 'y',
+    'ئ': 'y',
+    'ى': 'a',
+    'ة': 'a',
+    'ء': ''
+};
+
+function transliterateArabicName(arName) {
+    let result = '';
+    for (const ch of arName) {
+        // احتفظ بالمسافات وعلامة الشرطة وغيرها كما هي
+        if (ch === ' ' || ch === '-' || ch === '_') {
+            result += ch;
+            continue;
+        }
+        const mapped = arabicCharMap[ch];
+        result += mapped !== undefined ? mapped : ch;
+    }
+    // تحسين بسيط: جعل أول حرف في كل كلمة كبير
+    return result
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+perfumeNameInput.addEventListener('blur', () => {
+    const current = perfumeNameInput.value.trim();
+    if (!current) return;
+    // Skip if already contains English part from generator (has dash)
+    if (current.includes('-')) return;
+
+    const enPart = transliterateArabicName(current);
+    if (!enPart) return;
+    perfumeNameInput.value = `${current} - ${enPart}`;
+});
+
+// Perfume name generator (Arabic + English, 1-3 words)
+const maleMainWords = [
+    { ar: 'فخر', en: 'Fakhr' },
+    { ar: 'شموخ', en: 'Shomoukh' },
+    { ar: 'هيبة', en: 'Haybah' },
+    { ar: 'الفارس', en: 'Al Faris' },
+    { ar: 'أسطورة', en: 'Ustura' },
+    { ar: 'نبض', en: 'Nabd' },
+    { ar: 'سر', en: 'Sirr' },
+    { ar: 'مدار', en: 'Madar' },
+    { ar: 'وقار', en: 'Waqaar' },
+    { ar: 'رعد', en: 'Raad' }
+];
+
+const femaleMainWords = [
+    { ar: 'عبير', en: 'Abeer' },
+    { ar: 'همس', en: 'Hams' },
+    { ar: 'رِواء', en: 'Riwaa' },
+    { ar: 'بريق', en: 'Bareeq' },
+    { ar: 'أنسام', en: 'Ansam' },
+    { ar: 'أثير', en: 'Atheer' },
+    { ar: 'لحن', en: 'Lahn' },
+    { ar: 'ندى', en: 'Nada' },
+    { ar: 'لمسة', en: 'Lamsah' },
+    { ar: 'لؤلؤة', en: 'Luluah' }
+];
+
+const unisexMainWords = [
+    { ar: 'آثر', en: 'Aathar' },
+    { ar: 'غيمة', en: 'Ghaymah' },
+    { ar: 'صدى', en: 'Sada' },
+    { ar: 'بيان', en: 'Bayan' },
+    { ar: 'أسفار', en: 'Asfar' },
+    { ar: 'مرافئ', en: 'Marafi' },
+    { ar: 'نسمات', en: 'Nasamat' },
+    { ar: 'سر', en: 'Sirr' },
+    { ar: 'نبض', en: 'Nabd' },
+    { ar: 'أفق', en: 'Ofoq' }
+];
+
+const placeTimeWords = [
+    { ar: 'الليل', en: 'Al Layl' },
+    { ar: 'الفجر', en: 'Al Fajr' },
+    { ar: 'الصباح', en: 'Al Sabah' },
+    { ar: 'المساء', en: 'Al Masa' },
+    { ar: 'الشرق', en: 'Al Sharq' },
+    { ar: 'الغروب', en: 'Al Ghuroob' },
+    { ar: 'الصحراء', en: 'Al Sahra' },
+    { ar: 'المطر', en: 'Al Matar' }
+];
+
+const noteWords = [
+    { ar: 'العنبر', en: 'Al Anbar' },
+    { ar: 'العود', en: 'Al Oud' },
+    { ar: 'المسك', en: 'Al Musk' },
+    { ar: 'الورد', en: 'Al Ward' },
+    { ar: 'الياسمين', en: 'Al Yasmine' },
+    { ar: 'الفانيلا', en: 'Al Vanilla' }
+];
+
+function pickRandom(list) {
+    const index = Math.floor(Math.random() * list.length);
+    return list[index];
+}
+
+function buildPerfumeName(type, wordCountOverride) {
+    let mainList = maleMainWords;
+    if (type === 'female') {
+        mainList = femaleMainWords;
+    } else if (type === 'unisex') {
+        mainList = unisexMainWords;
+    }
+
+    const wordCount = wordCountOverride || (1 + Math.floor(Math.random() * 3)); // 1–3 كلمات
+    const partsAr = [];
+    const partsEn = [];
+
+    const main = pickRandom(mainList);
+    partsAr.push(main.ar);
+    partsEn.push(main.en);
+
+    if (wordCount >= 2) {
+        const place = pickRandom(placeTimeWords);
+        partsAr.push(place.ar);
+        partsEn.push(place.en);
+    }
+
+    if (wordCount === 3) {
+        const note = pickRandom(noteWords);
+        partsAr.push(note.ar);
+        partsEn.push(note.en);
+    }
+
+    const arName = partsAr.join(' ');
+    const enName = partsEn.join(' ');
+    return `${arName} - ${enName}`;
+}
+
+generatePerfumeNameBtn.addEventListener('click', () => {
+    const type = perfumeTypeSelect ? perfumeTypeSelect.value : 'male';
+    const chosenCount = wordCountSelect ? parseInt(wordCountSelect.value, 10) : null;
+    const name = buildPerfumeName(type, chosenCount);
+    perfumeNameInput.value = name;
+    perfumeNameInput.dispatchEvent(new Event('input'));
+});
 
 // Check for duplicate oil names
 function isDuplicateOil(name, container, excludeElement = null) {
@@ -279,15 +489,32 @@ function createOilInputs(container) {
     dropsInput.className = 'oil-drops';
     dropsInput.placeholder = 'عدد القطرات';
     dropsInput.min = '0';
+
+    const dropsHelper = document.createElement('div');
+    dropsHelper.className = 'drops-helper';
+    dropsHelper.textContent = '15 قطرة ≈ 1 مل';
     
     const removeBtn = document.createElement('button');
     removeBtn.textContent = '×';
     removeBtn.className = 'remove-oil';
     removeBtn.onclick = () => oilGroup.remove();
     
+    function updateDropsHelper() {
+        const drops = parseFloat(dropsInput.value) || 0;
+        if (!drops) {
+            dropsHelper.textContent = '15 قطرة ≈ 1 مل';
+            return;
+        }
+        const ml = drops / 15;
+        dropsHelper.textContent = `${drops} قطرة ≈ ${ml.toFixed(2)} مل`;
+    }
+
+    dropsInput.addEventListener('input', updateDropsHelper);
+
     oilGroup.appendChild(oilInput);
     oilGroup.appendChild(amountInput);
     oilGroup.appendChild(dropsInput);
+    oilGroup.appendChild(dropsHelper);
     oilGroup.appendChild(removeBtn);
     
     return oilGroup;
@@ -306,7 +533,6 @@ function handleFormSubmit(e, isEdit = false) {
     const perfumeName = form.querySelector('#' + (isEdit ? 'editPerfumeName' : 'perfumeName')).value.trim();
     const ingredients = form.querySelector('#' + (isEdit ? 'editIngredients' : 'ingredients')).value;
     const alcoholAmount = form.querySelector('#' + (isEdit ? 'editAlcoholAmount' : 'alcoholAmount')).value;
-    const alcoholType = form.querySelector('#' + (isEdit ? 'editAlcoholType' : 'alcoholType')).value;
     
     // Check for duplicate perfume name
     if (isDuplicatePerfume(perfumeName, isEdit ? currentEditId : null)) {
@@ -350,8 +576,7 @@ function handleFormSubmit(e, isEdit = false) {
         ingredients,
         oils,
         alcohol: {
-            amount: alcoholAmount,
-            type: alcoholType
+            amount: alcoholAmount
         },
         createdAt: isEdit ? perfumes.find(p => p.id === currentEditId).createdAt : new Date().toISOString()
     };
@@ -387,6 +612,7 @@ function displayPerfumes() {
         card.appendChild(numberElement);
         
         const totalVolume = calculateTotalVolume(perfume);
+        const totalVolumeDisplay = totalVolume.toFixed(2);
         
         card.innerHTML += `
             <div class="card-actions">
@@ -396,13 +622,21 @@ function displayPerfumes() {
             <h3>${perfume.name}</h3>
             <p>المكونات: ${perfume.ingredients}</p>
             <div class="oils">
-                ${perfume.oils.map(oil => 
-                    `<span class="oil-tag">${oil.name}: ${oil.amount || '0'} مل | ${oil.drops || '0'} قطرة</span>`
-                ).join('')}
+                ${perfume.oils.map(oil => {
+                    const amountMl = parseFloat(oil.amount) || 0;
+                    const drops = parseFloat(oil.drops) || 0;
+                    const dropsMl = drops ? (drops / 15) : 0;
+                    let dropsMlDisplay = '';
+                    if (drops) {
+                        const fixed = parseFloat(dropsMl.toFixed(2));
+                        dropsMlDisplay = Number.isInteger(fixed) ? fixed.toString() : fixed.toString();
+                    }
+                    const dropsMlText = drops ? ` ≈ ${dropsMlDisplay} مل` : '';
+                    return `<span class="oil-tag">${oil.name}: ${amountMl} مل | ${drops || 0} قطرة${dropsMlText}</span>`;
+                }).join('')}
             </div>
             <p>كمية الكحول: ${perfume.alcohol.amount} مل</p>
-            <p>ماء مقطر: ${perfume.alcohol.type}</p>
-            <p>الحجم الكلي: ${totalVolume} مل</p>
+            <p>الحجم الكلي: ${totalVolumeDisplay} مل</p>
         `;
         
         favoritesList.appendChild(card);
@@ -411,8 +645,13 @@ function displayPerfumes() {
 
 // Calculate total volume of perfume
 function calculateTotalVolume(perfume) {
-    const oilsVolume = perfume.oils.reduce((sum, oil) => sum + (parseFloat(oil.amount) || 0), 0);
-    const alcoholVolume = parseFloat(perfume.alcohol.amount);
+    const oilsVolume = perfume.oils.reduce((sum, oil) => {
+        const amountMl = parseFloat(oil.amount) || 0;
+        const drops = parseFloat(oil.drops) || 0;
+        const dropsAsMl = drops / 15; // 15 قطرة = 1 مل
+        return sum + amountMl + dropsAsMl;
+    }, 0);
+    const alcoholVolume = parseFloat(perfume.alcohol.amount) || 0;
     return oilsVolume + alcoholVolume;
 }
 
@@ -469,11 +708,6 @@ function editPerfume(id) {
         <div class="form-group">
             <label for="editAlcoholAmount">كمية الكحول (مل)</label>
             <input type="number" id="editAlcoholAmount" value="${perfume.alcohol.amount}" min="0" required>
-        </div>
-
-        <div class="form-group">
-            <label for="editAlcoholType">ماء مقطر</label>
-            <input type="text" id="editAlcoholType" value="${perfume.alcohol.type}" required>
         </div>
 
         <button type="submit" class="submit-btn">حفظ التعديلات</button>

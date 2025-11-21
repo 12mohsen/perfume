@@ -23,6 +23,10 @@
                     <div class="names-container">
                         <div class="name-input-container">
                             <input type="text" id="newPerfumeName" placeholder="اسم العطر الجديد">
+                            <div class="name-extra-inputs">
+                                <input type="number" id="newPerfumePrice" placeholder="السعر (اختياري)">
+                                <input type="text" id="newPerfumeNote" placeholder="ملاحظة (اختياري)">
+                            </div>
                             <button id="savePerfumeName" class="save-name-btn">حفظ</button>
                         </div>
                         <div class="select-all-container">
@@ -51,7 +55,22 @@
                 <form id="perfumeForm">
                     <div class="form-group">
                         <label for="perfumeName">اسم العطر <span class="required">*</span></label>
-                        <input type="text" id="perfumeName" required>
+                        <div class="perfume-name-generator">
+                            <input type="text" id="perfumeName" required>
+                            <div class="name-generator-controls">
+                                <select id="perfumeType">
+                                    <option value="male">رجالي</option>
+                                    <option value="female">نسائي</option>
+                                    <option value="unisex">محايد</option>
+                                </select>
+                                <select id="wordCount">
+                                    <option value="1">كلمة واحدة</option>
+                                    <option value="2">كلمتان</option>
+                                    <option value="3">ثلاث كلمات</option>
+                                </select>
+                                <button type="button" id="generatePerfumeName" class="generate-name-btn">توليد اسم</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -69,11 +88,6 @@
                     <div class="form-group">
                         <label for="alcoholAmount">كمية الكحول (مل) (اختياري)</label>
                         <input type="number" id="alcoholAmount" min="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="alcoholType">ماء مقطر (اختياري)</label>
-                        <input type="text" id="alcoholType">
                     </div>
 
                     <button type="submit" class="submit-btn">إضافة العطر</button>
