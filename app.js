@@ -133,9 +133,8 @@ function updatePerfumeNamesList() {
                     <span class="perfume-name-item" style="cursor: pointer">${name}</span>
                     ${(price || note) ? `
                         <div class="perfume-name-meta">
-                            ${price ? `<span class="perfume-name-price">السعر: ${price}</span>` : ''}
-                            ${price && note ? '<span class="meta-separator">|</span>' : ''}
-                            ${note ? `<span class="perfume-name-note">ملاحظة: ${note}</span>` : ''}
+                            ${price ? `<div class="perfume-name-price">السعر: ${price}</div>` : ''}
+                            ${note ? `<div class="perfume-name-note">ملاحظة: ${note}</div>` : ''}
                         </div>
                     ` : ''}
                 </div>
