@@ -121,6 +121,13 @@ header {
     align-items: center;
 }
 
+.app-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #9CA3AF;
+}
+
 .header-content {
     flex: 1;
     text-align: center;
