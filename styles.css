@@ -794,8 +794,13 @@ input, textarea {
     }
 
     .perfume-card {
-        padding: 0.9rem;
+        padding: 1.6rem 0.9rem 0.9rem;
         font-size: 0.9rem;
+    }
+
+    .card-actions {
+        top: 0.3rem;
+        left: 0.5rem;
     }
 
     .perfume-card h3 {
