@@ -11,6 +11,7 @@ const perfumeForm = document.getElementById('perfumeForm');
 const oilsContainer = document.getElementById('oilsContainer');
 const addOilBtn = document.getElementById('addOil');
 const favoritesList = document.getElementById('favoritesList');
+const favoritesCountSpan = document.getElementById('favoritesCount');
 const deleteAllBtn = document.getElementById('deleteAll');
 const editModal = document.getElementById('editModal');
 const closeModal = document.querySelector('.close-modal');
@@ -255,6 +256,26 @@ function isDuplicatePerfume(name, currentId = null) {
     return false;
 }
 
+// Silent check for used perfume names (no alerts) - for generator
+function isPerfumeNameUsed(name, currentId = null) {
+    name = name.trim().toLowerCase();
+
+    // Check in saved perfume names list
+    if (perfumeNames.some(savedName => {
+        const savedNameText = typeof savedName === 'string' ? savedName : savedName.name;
+        return savedNameText && savedNameText.toLowerCase() === name;
+    })) {
+        return true;
+    }
+
+    // Check in perfumes list
+    const duplicate = perfumes.find(p => 
+        p.name.toLowerCase() === name && p.id !== currentId
+    );
+
+    return !!duplicate;
+}
+
 // Add input event listener for perfume name
 function addPerfumeNameValidation(input, currentId = null) {
     input.addEventListener('input', function() {
@@ -351,7 +372,27 @@ const maleMainWords = [
     { ar: 'سر', en: 'Sirr' },
     { ar: 'مدار', en: 'Madar' },
     { ar: 'وقار', en: 'Waqaar' },
-    { ar: 'رعد', en: 'Raad' }
+    { ar: 'رعد', en: 'Raad' },
+    { ar: 'صولجان', en: 'Sooljan' },
+    { ar: 'صول', en: 'Soul' },
+    { ar: 'صولت', en: 'Soulat' },
+    { ar: 'مهابة', en: 'Mahabah' },
+    { ar: 'سِنا', en: 'Sina' },
+    { ar: 'ساري', en: 'Sari' },
+    { ar: 'مجد', en: 'Majd' },
+    { ar: 'صهيل', en: 'Saheel' },
+    { ar: 'عِز', en: 'Izz' },
+    { ar: 'سيد', en: 'Sayyid' },
+    { ar: 'أمير', en: 'Ameer' },
+    { ar: 'قائد', en: 'Qaid' },
+    { ar: 'نادر', en: 'Nader' },
+    { ar: 'برق', en: 'Barq' },
+    { ar: 'لهيب', en: 'Laheeb' },
+    { ar: 'طيف', en: 'Taif' },
+    { ar: 'ظل', en: 'Thill' },
+    { ar: 'حارس', en: 'Hares' },
+    { ar: 'أسد', en: 'Asad' },
+    { ar: 'صولجان', en: 'Scepter' }
 ];
 
 const femaleMainWords = [
@@ -364,7 +405,26 @@ const femaleMainWords = [
     { ar: 'لحن', en: 'Lahn' },
     { ar: 'ندى', en: 'Nada' },
     { ar: 'لمسة', en: 'Lamsah' },
-    { ar: 'لؤلؤة', en: 'Luluah' }
+    { ar: 'لؤلؤة', en: 'Luluah' },
+    { ar: 'سُكّر', en: 'Sukkar' },
+    { ar: 'حرير', en: 'Hareer' },
+    { ar: 'رمش', en: 'Rimsh' },
+    { ar: 'حُلم', en: 'Holm' },
+    { ar: 'لمعة', en: 'Lamaah' },
+    { ar: 'سندس', en: 'Sundus' },
+    { ar: 'حلى', en: 'Hala' },
+    { ar: 'رونق', en: 'Rawnaq' },
+    { ar: 'سجايا', en: 'Sajaya' },
+    { ar: 'وشم', en: 'Washm' },
+    { ar: 'ديما', en: 'Deema' },
+    { ar: 'طل', en: 'Tal' },
+    { ar: 'جوري', en: 'Jory' },
+    { ar: 'قطرة', en: 'Qatrah' },
+    { ar: 'موج', en: 'Moj' },
+    { ar: 'ألِق', en: 'Alaq' },
+    { ar: 'شعاع', en: 'Shoaa' },
+    { ar: 'سراب', en: 'Sarab' },
+    { ar: 'ظِلّة', en: 'Zillah' }
 ];
 
 const unisexMainWords = [
@@ -377,7 +437,26 @@ const unisexMainWords = [
     { ar: 'نسمات', en: 'Nasamat' },
     { ar: 'سر', en: 'Sirr' },
     { ar: 'نبض', en: 'Nabd' },
-    { ar: 'أفق', en: 'Ofoq' }
+    { ar: 'أفق', en: 'Ofoq' },
+    { ar: 'سرمد', en: 'Sarmad' },
+    { ar: 'وتين', en: 'Wateen' },
+    { ar: 'فجر', en: 'Fajr' },
+    { ar: 'رؤى', en: 'Roa' },
+    { ar: 'موج', en: 'Mawj' },
+    { ar: 'مدى', en: 'Mada' },
+    { ar: 'مدار', en: 'Madar' },
+    { ar: 'مرافئ', en: 'Marafi' },
+    { ar: 'عبور', en: 'Obour' },
+    { ar: 'وصال', en: 'Wisal' },
+    { ar: 'ميثاق', en: 'Meethaq' },
+    { ar: 'نجوى', en: 'Najwa' },
+    { ar: 'سكون', en: 'Skoon' },
+    { ar: 'طيف', en: 'Taif' },
+    { ar: 'وحي', en: 'Wahy' },
+    { ar: 'شغف', en: 'Shaghaf' },
+    { ar: 'أثر', en: 'Athar' },
+    { ar: 'قَمَر', en: 'Qamar' },
+    { ar: 'ضياء', en: 'Dhiaa' }
 ];
 
 const placeTimeWords = [
@@ -441,8 +520,24 @@ function buildPerfumeName(type, wordCountOverride) {
 generatePerfumeNameBtn.addEventListener('click', () => {
     const type = perfumeTypeSelect ? perfumeTypeSelect.value : 'male';
     const chosenCount = wordCountSelect ? parseInt(wordCountSelect.value, 10) : null;
-    const name = buildPerfumeName(type, chosenCount);
+    let name = '';
+
+    // حاول توليد اسم غير مكرر لعدة محاولات بدون إظهار تنبيه للمستخدم
+    for (let i = 0; i < 10; i++) {
+        const candidate = buildPerfumeName(type, chosenCount);
+        if (!isPerfumeNameUsed(candidate)) {
+            name = candidate;
+            break;
+        }
+    }
+
+    // في حال الاحتمال النادر أن كل المحاولات مكررة، استخدم آخر اسم مولَّد
+    if (!name) {
+        name = buildPerfumeName(type, chosenCount);
+    }
+
     perfumeNameInput.value = name;
+    // تفعيل أي منطق إضافي مرتبط بحقل الاسم (مثل التحقق أو التغييرات الأخرى)
     perfumeNameInput.dispatchEvent(new Event('input'));
 });
 
@@ -601,6 +696,10 @@ editForm.addEventListener('submit', e => handleFormSubmit(e, true));
 function displayPerfumes() {
     favoritesList.innerHTML = '';
     
+    if (favoritesCountSpan) {
+        favoritesCountSpan.textContent = perfumes.length ? `(${perfumes.length})` : '';
+    }
+
     perfumes.forEach((perfume, index) => {
         const card = document.createElement('div');
         card.className = 'perfume-card';
